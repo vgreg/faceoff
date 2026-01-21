@@ -151,6 +151,10 @@ class TeamsScreen(Screen):
         Binding("escape,b", "back", "Back"),
         Binding("r", "refresh", "Refresh"),
         Binding("q", "quit", "Quit"),
+        Binding("left", "focus_prev_card", "Previous", show=False),
+        Binding("right", "focus_next_card", "Next", show=False),
+        Binding("up", "focus_card_above", "Up", show=False),
+        Binding("down", "focus_card_below", "Down", show=False),
     ]
 
     DEFAULT_CSS = """
@@ -310,6 +314,62 @@ class TeamsScreen(Screen):
         """Quit the application."""
         self.app.exit()
 
+    def _get_focused_card_index(self) -> int:
+        """Get the index of the currently focused card, or -1 if none."""
+        cards = list(self.query(TeamCard))
+        for i, card in enumerate(cards):
+            if card.has_focus:
+                return i
+        return -1
+
+    def _focus_card_at_index(self, index: int) -> None:
+        """Focus the card at the given index."""
+        cards = list(self.query(TeamCard))
+        if cards and 0 <= index < len(cards):
+            cards[index].focus()
+
+    def action_focus_prev_card(self) -> None:
+        """Focus the previous team card."""
+        idx = self._get_focused_card_index()
+        if idx > 0:
+            self._focus_card_at_index(idx - 1)
+        elif idx == -1:
+            # No card focused, focus the first one
+            self._focus_card_at_index(0)
+
+    def action_focus_next_card(self) -> None:
+        """Focus the next team card."""
+        idx = self._get_focused_card_index()
+        cards = list(self.query(TeamCard))
+        if idx < len(cards) - 1:
+            self._focus_card_at_index(idx + 1)
+        elif idx == -1 and cards:
+            # No card focused, focus the first one
+            self._focus_card_at_index(0)
+
+    def action_focus_card_above(self) -> None:
+        """Focus the team card above (previous row, same column)."""
+        idx = self._get_focused_card_index()
+        if idx < 0:
+            self._focus_card_at_index(0)
+            return
+        cards_per_row = self._get_cards_per_row()
+        new_idx = idx - cards_per_row
+        if new_idx >= 0:
+            self._focus_card_at_index(new_idx)
+
+    def action_focus_card_below(self) -> None:
+        """Focus the team card below (next row, same column)."""
+        idx = self._get_focused_card_index()
+        if idx < 0:
+            self._focus_card_at_index(0)
+            return
+        cards = list(self.query(TeamCard))
+        cards_per_row = self._get_cards_per_row()
+        new_idx = idx + cards_per_row
+        if new_idx < len(cards):
+            self._focus_card_at_index(new_idx)
+
 
 class TeamDetailScreen(Screen):
     """Screen for viewing team details."""
@@ -318,6 +378,8 @@ class TeamDetailScreen(Screen):
         Binding("escape,b", "back", "Back"),
         Binding("r", "refresh", "Refresh"),
         Binding("q", "quit", "Quit"),
+        Binding("up,k", "focus_prev_player", "Previous", show=False),
+        Binding("down,j", "focus_next_player", "Next", show=False),
     ]
 
     DEFAULT_CSS = """
@@ -530,3 +592,37 @@ class TeamDetailScreen(Screen):
     def action_quit(self) -> None:
         """Quit the application."""
         self.app.exit()
+
+    def _get_focused_player_index(self) -> int:
+        """Get the index of the currently focused player row, or -1 if none."""
+        rows = list(self.query(PlayerRow))
+        for i, row in enumerate(rows):
+            if row.has_focus:
+                return i
+        return -1
+
+    def _focus_player_at_index(self, index: int) -> None:
+        """Focus the player row at the given index and scroll into view."""
+        rows = list(self.query(PlayerRow))
+        if rows and 0 <= index < len(rows):
+            rows[index].focus()
+            rows[index].scroll_visible()
+
+    def action_focus_prev_player(self) -> None:
+        """Focus the previous player row."""
+        idx = self._get_focused_player_index()
+        if idx > 0:
+            self._focus_player_at_index(idx - 1)
+        elif idx == -1:
+            # No player focused, focus the first one
+            self._focus_player_at_index(0)
+
+    def action_focus_next_player(self) -> None:
+        """Focus the next player row."""
+        idx = self._get_focused_player_index()
+        rows = list(self.query(PlayerRow))
+        if idx < len(rows) - 1:
+            self._focus_player_at_index(idx + 1)
+        elif idx == -1 and rows:
+            # No player focused, focus the first one
+            self._focus_player_at_index(0)

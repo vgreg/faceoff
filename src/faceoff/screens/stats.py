@@ -18,6 +18,8 @@ class StatsScreen(Screen):
         Binding("escape,b", "back", "Back"),
         Binding("r", "refresh", "Refresh"),
         Binding("q", "quit", "Quit"),
+        Binding("up,k", "scroll_up", "Scroll Up", show=False),
+        Binding("down,j", "scroll_down", "Scroll Down", show=False),
     ]
 
     DEFAULT_CSS = """
@@ -298,3 +300,28 @@ class StatsScreen(Screen):
     def action_quit(self) -> None:
         """Quit the application."""
         self.app.exit()
+
+    def _get_active_scroll_container(self) -> VerticalScroll | None:
+        """Get the currently active scroll container based on selected tab."""
+        try:
+            tabbed = self.query_one(TabbedContent)
+            active_tab = tabbed.active
+            if active_tab == "tab-skaters":
+                return self.query_one("#skaters-container", VerticalScroll)
+            elif active_tab == "tab-goalies":
+                return self.query_one("#goalies-container", VerticalScroll)
+        except Exception:
+            return None
+        return None
+
+    def action_scroll_up(self) -> None:
+        """Scroll the active container up."""
+        container = self._get_active_scroll_container()
+        if container:
+            container.scroll_up(animate=False)
+
+    def action_scroll_down(self) -> None:
+        """Scroll the active container down."""
+        container = self._get_active_scroll_container()
+        if container:
+            container.scroll_down(animate=False)
