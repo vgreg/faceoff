@@ -1,74 +1,190 @@
-# faceoff
+# Faceoff
 
-[![Release](https://img.shields.io/github/v/release/vgreg/faceoff)](https://img.shields.io/github/v/release/vgreg/faceoff)
-[![Build status](https://img.shields.io/github/actions/workflow/status/vgreg/faceoff/main.yml?branch=main)](https://github.com/vgreg/faceoff/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/vgreg/faceoff/branch/main/graph/badge.svg)](https://codecov.io/gh/vgreg/faceoff)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/vgreg/faceoff)](https://img.shields.io/github/commit-activity/m/vgreg/faceoff)
+<p align="center">
+  <img src="faceoff_logo.png" alt="Faceoff Logo" width="200">
+</p>
+
+A terminal user interface (TUI) application for following NHL hockey games in real-time.
+
+![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
 [![License](https://img.shields.io/github/license/vgreg/faceoff)](https://img.shields.io/github/license/vgreg/faceoff)
 
-Terminal tool for watching hockey games
+## Features
 
-- **Github repository**: <https://github.com/vgreg/faceoff/>
-- **Documentation** <https://vgreg.github.io/faceoff/>
+- **Live Game Schedule**: Browse NHL games by date with easy navigation (previous/next day)
+- **Real-time Updates**: Auto-refreshing scores for live games
+- **Game Details**: View play-by-play, box scores, and scoring summaries for in-progress and completed games
+- **Pre-Game Preview**: View matchup data including goalie comparison and skater leaders for upcoming games
+- **League Standings**: View current NHL standings with multiple views (Wild Card, Division, Conference, League)
+- **Player Stats Leaders**: View top players in various statistical categories for skaters and goalies
+- **Team Browser**: Browse all NHL teams, view rosters, and team schedules
+- **Player Profiles**: View detailed player information, career stats, and game logs
+- **Responsive Layout**: Game cards automatically arrange based on terminal width
+- **Local Time Display**: Game times shown in your local timezone with timezone abbreviation
 
-## Getting started with your project
+## Installation
 
-### 1. Create a New Repository
-
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
+### Using uvx (recommended)
 
 ```bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:vgreg/faceoff.git
-git push -u origin main
+uvx faceoff
 ```
 
-### 2. Set Up Your Development Environment
-
-Then, install the environment and the pre-commit hooks with
+### Using pip
 
 ```bash
+pip install faceoff
+```
+
+Then run:
+
+```bash
+faceoff
+```
+
+### From source
+
+```bash
+git clone https://github.com/vgreg/faceoff.git
+cd faceoff
+uv run faceoff
+```
+
+## Usage
+
+### Schedule Screen (Main Screen)
+
+| Key | Action |
+|-----|--------|
+| `Arrow keys` | Navigate between game cards |
+| `h` | Previous day |
+| `l` | Next day |
+| `t` | Jump to today |
+| `s` | View standings |
+| `p` | View player stats |
+| `m` | Browse teams |
+| `r` | Refresh |
+| `Enter` | Select game (for live/completed games) |
+| `q` | Quit |
+
+### Game Screen
+
+| Key | Action |
+|-----|--------|
+| `b` or `Escape` | Back to schedule |
+| `r` | Refresh |
+| `Tab` | Switch between tabs (Play-by-Play, Box Score, Summary) |
+| `q` | Quit |
+
+### Pre-Game Screen
+
+| Key | Action |
+|-----|--------|
+| `b` or `Escape` | Back to schedule |
+| `r` | Refresh |
+| `q` | Quit |
+
+### Standings Screen
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch between views (Wild Card, Division, Conference, League) |
+| `Up/Down` or `j/k` | Scroll standings |
+| `b` or `Escape` | Back to schedule |
+| `r` | Refresh |
+| `q` | Quit |
+
+### Stats Screen
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch between Skaters and Goalies |
+| `b` or `Escape` | Back to schedule |
+| `r` | Refresh |
+| `q` | Quit |
+
+### Teams Screen
+
+| Key | Action |
+|-----|--------|
+| `Arrow keys` | Navigate between team cards |
+| `Enter` | Select team to view details |
+| `b` or `Escape` | Back to schedule |
+| `r` | Refresh |
+| `q` | Quit |
+
+### Team Detail Screen
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch between Roster and Schedule |
+| `Enter` | Select player to view profile |
+| `b` or `Escape` | Back to teams |
+| `r` | Refresh |
+| `q` | Quit |
+
+### Player Screen
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch between Info, Stats, and Game Log |
+| `b` or `Escape` | Back |
+| `r` | Refresh |
+| `q` | Quit |
+
+## Screenshots
+
+The app displays a schedule of games in a responsive grid layout:
+
+```
+╔══════════════════════════╗ ┌──────────────────────────┐ ┌──────────────────────────┐
+║ MIN                      ║ │ SJS                      │ │ OTT                      │
+║ MTL                      ║ │ TBL                      │ │ CBJ                      │
+║       12:00 AM UTC       ║ │       07:00 PM EST       │ │       07:00 PM EST       │
+╚══════════════════════════╝ └──────────────────────────┘ └──────────────────────────┘
+```
+
+## Acknowledgments
+
+This project was inspired by [Playball](https://github.com/paaatrick/playball), a similar terminal application for following MLB baseball games.
+
+### Built With
+
+- **[Textual](https://github.com/Textualize/textual)** - The modern TUI framework for Python that powers the user interface
+- **[nhl-stats-api-client](https://github.com/nhl-stats-api-client)** - Python client for accessing NHL API data
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or in any way officially connected with the National Hockey League (NHL), any of its teams, or any of its affiliates. All NHL logos, trademarks, and data are the property of the NHL and its teams.
+
+This application uses publicly available NHL API data for informational and educational purposes only.
+
+## Development
+
+### Setup
+
+```bash
+git clone https://github.com/vgreg/faceoff.git
+cd faceoff
 make install
 ```
 
-This will also generate your `uv.lock` file
-
-### 3. Run the pre-commit hooks
-
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
+### Running Tests
 
 ```bash
-uv run pre-commit run -a
+uv run pytest
 ```
 
-### 4. Commit the changes
-
-Lastly, commit the changes made by the two steps above to your repository.
+### Linting
 
 ```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
+uv run ruff check src/
 ```
 
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
+## License
 
-To finalize the set-up for publishing to PyPI, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/codecov/).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Releasing a new version
+## Contributing
 
-- Create an API Token on [PyPI](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/vgreg/faceoff/settings/secrets/actions/new).
-- Create a [new release](https://github.com/vgreg/faceoff/releases/new) on Github.
-- Create a new tag in the form `*.*.*`.
-
-For more details, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/cicd/#how-to-trigger-a-release).
-
----
-
-Repository initiated with [fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+Contributions are welcome! Please feel free to submit a Pull Request.

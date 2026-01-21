@@ -18,6 +18,8 @@ plugins:
           paths: ["src/faceoff"]
 theme:
   name: material
+  logo: assets/faceoff_logo.png
+  favicon: assets/faceoff_logo.png
   feature:
     tabs: true
   palette:
