@@ -132,17 +132,9 @@ uv run faceoff
 | `r` | Refresh |
 | `q` | Quit |
 
-## Screenshots
+## Screenshot
 
-The app displays a schedule of games in a responsive grid layout:
-
-```
-╔══════════════════════════╗ ┌──────────────────────────┐ ┌──────────────────────────┐
-║ MIN                      ║ │ SJS                      │ │ OTT                      │
-║ MTL                      ║ │ TBL                      │ │ CBJ                      │
-║       12:00 AM UTC       ║ │       07:00 PM EST       │ │       07:00 PM EST       │
-╚══════════════════════════╝ └──────────────────────────┘ └──────────────────────────┘
-```
+![Faceoff Screenshot](screenshot.png)
 
 ## Acknowledgments
 
