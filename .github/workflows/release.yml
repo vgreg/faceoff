@@ -139,7 +139,8 @@ jobs:
         if: steps.version_bump.outputs.should_release == 'true'
         run: |
           NEW_VERSION="${{ steps.version_bump.outputs.new_version }}"
-          sed -i "s/version = \"[^\"]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          # Only replace version at start of line (project version, not target-version etc)
+          sed -i "s/^version = \"[^\"]*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
           echo "Updated pyproject.toml version to $NEW_VERSION"
 
