@@ -1,6 +1,6 @@
 [project]
 name = "faceoff"
-version = "0.1.1"
+version = "0.1.2"
 description = "Terminal tool for watching hockey games"
 authors = [{ name = "Vincent Gregoire", email = "vincent.gregoire@gmail.com" }]
 readme = "README.md"
