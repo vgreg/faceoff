@@ -22,8 +22,10 @@ class StandingsScreen(Screen):
         Binding("down,j", "scroll_down", "Scroll Down", show=False),
     ]
 
-    # Minimum width to display conferences side-by-side (two columns of ~40 chars each)
-    SIDE_BY_SIDE_MIN_WIDTH = 90
+    # Minimum width to display conferences side-by-side
+    # Each conference needs ~70 chars (rank:4 + name:24 + gp:6 + w:6 + l:6 + otl:6 + pts:6 + pct:8 + padding)
+    # Two conferences side-by-side need ~150 chars total
+    SIDE_BY_SIDE_MIN_WIDTH = 150
 
     DEFAULT_CSS = """
     StandingsScreen {
