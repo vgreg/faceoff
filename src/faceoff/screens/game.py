@@ -246,6 +246,8 @@ class GameScreen(Screen):
     }
     """
 
+    REFRESH_INTERVAL: ClassVar[int] = 30  # Seconds between auto-refreshes
+
     def __init__(self, client: NHLClient, game_id: int, game_data: dict, **kwargs) -> None:
         super().__init__(**kwargs)
         self.client = client
@@ -255,6 +257,8 @@ class GameScreen(Screen):
         self.play_by_play: list = []
         self.scoring_summary: list = []  # From landing page
         self._refresh_timer: Timer | None = None
+        self._countdown_timer: Timer | None = None
+        self._countdown: int = self.REFRESH_INTERVAL
         self._last_width: int = 0
 
     def compose(self) -> ComposeResult:
@@ -267,15 +271,20 @@ class GameScreen(Screen):
         """Load game data when screen is mounted."""
         self.load_game_data()
 
-        # Set up auto-refresh for pre-game and live games (every 30 seconds)
+        # Set up auto-refresh for pre-game and live games
         game_state = self.game_data.get("gameState", "FUT")
         if game_state in ("PRE", "LIVE", "CRIT"):
-            self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)
+            self._countdown = self.REFRESH_INTERVAL
+            self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)  # type: ignore[arg-type]
+            self._countdown_timer = self.set_interval(1, callback=self._update_countdown)
+            self._update_subtitle()
 
     def on_unmount(self) -> None:
         """Clean up when screen is unmounted."""
         if self._refresh_timer:
             self._refresh_timer.stop()
+        if self._countdown_timer:
+            self._countdown_timer.stop()
 
     def on_resize(self, event) -> None:
         """Handle resize to adjust layout."""
@@ -792,8 +801,21 @@ class GameScreen(Screen):
                         assists.append(name)
         return assists
 
+    def _update_countdown(self) -> None:
+        """Update the countdown timer every second."""
+        self._countdown -= 1
+        if self._countdown < 0:
+            self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
+
+    def _update_subtitle(self) -> None:
+        """Update the screen subtitle with countdown."""
+        self.sub_title = f"Refreshing in {self._countdown}s"
+
     def _auto_refresh(self) -> None:
         """Auto-refresh game data."""
+        self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
         self.client.clear_cache()
         self.load_game_data()
 
@@ -803,6 +825,8 @@ class GameScreen(Screen):
 
     def action_refresh(self) -> None:
         """Manually refresh game data."""
+        self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
         self.client.clear_cache()
         self.load_game_data()
         self.notify("Refreshed")

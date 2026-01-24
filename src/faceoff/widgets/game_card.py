@@ -61,8 +61,16 @@ class GameCard(Widget):
         border: solid $success;
     }
 
+    GameCard.-live:focus {
+        border: double $accent;
+    }
+
     GameCard.-final {
         border: solid $surface;
+    }
+
+    GameCard.-final:focus {
+        border: double $accent;
     }
 
     GameCard .team-row {

@@ -1,6 +1,6 @@
 """Schedule screen for browsing games."""
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import ClassVar
 from zoneinfo import ZoneInfo
 
@@ -21,7 +21,7 @@ CARD_WIDTH = 29
 NHL_TIMEZONE = ZoneInfo("America/New_York")
 
 
-def get_nhl_today() -> datetime:
+def get_nhl_today() -> date:
     """Get the current date in NHL timezone (Eastern Time)."""
     return datetime.now(NHL_TIMEZONE).date()
 
@@ -97,12 +97,16 @@ class ScheduleScreen(Screen):
     }
     """
 
+    REFRESH_INTERVAL: ClassVar[int] = 30  # Seconds between auto-refreshes
+
     def __init__(self, client: NHLClient, **kwargs) -> None:
         super().__init__(**kwargs)
         self.client = client
         self.current_date = get_nhl_today()
         self.games: list = []
         self._refresh_timer: Timer | None = None
+        self._countdown_timer: Timer | None = None
+        self._countdown: int = self.REFRESH_INTERVAL
         self._last_width: int = 0
 
     def compose(self) -> ComposeResult:
@@ -116,13 +120,18 @@ class ScheduleScreen(Screen):
     def on_mount(self) -> None:
         """Load games when the screen is mounted."""
         self.load_games()
-        # Set up auto-refresh every 30 seconds
-        self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)
+        # Set up auto-refresh every 30 seconds (only for today's games)
+        self._countdown = self.REFRESH_INTERVAL
+        self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)  # type: ignore[arg-type]
+        self._countdown_timer = self.set_interval(1, callback=self._update_countdown)
+        self._update_subtitle()
 
     def on_unmount(self) -> None:
         """Clean up when screen is unmounted."""
         if self._refresh_timer:
             self._refresh_timer.stop()
+        if self._countdown_timer:
+            self._countdown_timer.stop()
 
     def _format_date(self) -> str:
         """Format the current date for display."""
@@ -215,10 +224,26 @@ class ScheduleScreen(Screen):
             self._last_width = new_width
             self._update_games_display()
 
+    def _update_countdown(self) -> None:
+        """Update the countdown timer every second."""
+        self._countdown -= 1
+        if self._countdown < 0:
+            self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
+
+    def _update_subtitle(self) -> None:
+        """Update the screen subtitle with countdown (only for today)."""
+        if self.current_date == get_nhl_today():
+            self.sub_title = f"Refreshing in {self._countdown}s"
+        else:
+            self.sub_title = ""
+
     def _auto_refresh(self) -> None:
         """Auto-refresh games (for live updates)."""
+        self._countdown = self.REFRESH_INTERVAL
         # Only refresh if viewing today's games
         if self.current_date == get_nhl_today():
+            self._update_subtitle()
             self.client.clear_cache()
             self.load_games()
 
@@ -248,20 +273,26 @@ class ScheduleScreen(Screen):
     def action_prev_day(self) -> None:
         """Go to previous day."""
         self.current_date -= timedelta(days=1)
+        self._update_subtitle()
         self.load_games()
 
     def action_next_day(self) -> None:
         """Go to next day."""
         self.current_date += timedelta(days=1)
+        self._update_subtitle()
         self.load_games()
 
     def action_today(self) -> None:
         """Go to today."""
         self.current_date = get_nhl_today()
+        self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
         self.load_games()
 
     def action_refresh(self) -> None:
         """Manually refresh games."""
+        self._countdown = self.REFRESH_INTERVAL
+        self._update_subtitle()
         self.client.clear_cache()
         self.load_games()
         self.notify("Refreshed")
