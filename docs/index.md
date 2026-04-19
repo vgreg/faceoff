@@ -57,7 +57,7 @@ This project was inspired by [Playball](https://github.com/paaatrick/playball), 
 ### Built With
 
 - **[Textual](https://github.com/Textualize/textual)** - The modern TUI framework for Python that powers the user interface
-- **[nhl-stats-api-client](https://github.com/nhl-stats-api-client)** - Python client for accessing NHL API data
+- **[nhl-stats-api-client](https://github.com/liahimratman/nhl-api-client)** - Python client for accessing NHL API data
 
 ## Disclaimer
 
