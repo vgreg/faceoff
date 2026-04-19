@@ -68,6 +68,10 @@ class NHLClient:
         """Get landing page data for a specific game (summary info)."""
         return await self._get(f"/gamecenter/{game_id}/landing", cache_ttl=10.0)
 
+    async def get_game_right_rail(self, game_id: int) -> dict[str, Any]:
+        """Get right-rail data for a specific game (team-level game stats)."""
+        return await self._get(f"/gamecenter/{game_id}/right-rail", cache_ttl=10.0)
+
     async def get_standings(self, date: str | None = None) -> dict[str, Any]:
         """Get standings for a specific date or current."""
         if date:
