@@ -6,7 +6,7 @@
 
 A terminal user interface (TUI) application for following NHL hockey games in real-time.
 
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.13+-blue.svg)
 [![License](https://img.shields.io/github/license/vgreg/faceoff)](https://img.shields.io/github/license/vgreg/faceoff)
 
 ## Features
@@ -50,9 +50,19 @@ cd faceoff
 uv run faceoff
 ```
 
-## Screenshot
+## Screenshots
 
-![Faceoff Screenshot](screenshot.png)
+Game detail view (shown with different terminal color schemes):
+
+![Game detail view](screenshots/Faceoff_2026-04-19T12_37_42_686318.svg)
+
+![Game detail view, dark theme](screenshots/Faceoff_2026-04-19T12_38_12_746997.svg)
+
+![Game detail view, warm theme](screenshots/Faceoff_2026-04-19T12_38_42_262656.svg)
+
+League standings:
+
+![League standings](screenshots/Faceoff_2026-04-19T12_39_28_765694.svg)
 
 ## Acknowledgments
 

@@ -246,8 +246,6 @@ class GameScreen(Screen):
     }
     """
 
-    REFRESH_INTERVAL: ClassVar[int] = 30  # Seconds between auto-refreshes
-
     def __init__(self, client: NHLClient, game_id: int, game_data: dict, **kwargs) -> None:
         super().__init__(**kwargs)
         self.client = client
@@ -256,9 +254,10 @@ class GameScreen(Screen):
         self.boxscore: dict = {}
         self.play_by_play: list = []
         self.scoring_summary: list = []  # From landing page
+        self.team_game_stats: list = []  # From right-rail endpoint
         self._refresh_timer: Timer | None = None
         self._countdown_timer: Timer | None = None
-        self._countdown: int = self.REFRESH_INTERVAL
+        self._countdown: int = 30  # Reset from app.refresh_interval on mount
         self._last_width: int = 0
 
     def compose(self) -> ComposeResult:
@@ -274,8 +273,9 @@ class GameScreen(Screen):
         # Set up auto-refresh for pre-game and live games
         game_state = self.game_data.get("gameState", "FUT")
         if game_state in ("PRE", "LIVE", "CRIT"):
-            self._countdown = self.REFRESH_INTERVAL
-            self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)  # type: ignore[arg-type]
+            interval = self.app.refresh_interval  # type: ignore[attr-defined]
+            self._countdown = interval
+            self._refresh_timer = self.set_interval(interval, callback=self._auto_refresh)  # type: ignore[arg-type]
             self._countdown_timer = self.set_interval(1, callback=self._update_countdown)
             self._update_subtitle()
 
@@ -306,10 +306,12 @@ class GameScreen(Screen):
     async def _fetch_game_data(self) -> None:
         """Fetch game data from the API."""
         try:
-            # Fetch boxscore, play-by-play, and landing page
-            self.boxscore = self.client.get_game_boxscore(self.game_id)
-            pbp_data = self.client.get_game_play_by_play(self.game_id)
-            landing = self.client.get_game_landing(self.game_id)
+            # Fetch boxscore, play-by-play, landing page, and right-rail team stats
+            self.boxscore = await self.client.get_game_boxscore(self.game_id)
+            pbp_data = await self.client.get_game_play_by_play(self.game_id)
+            landing = await self.client.get_game_landing(self.game_id)
+            right_rail = await self.client.get_game_right_rail(self.game_id)
+            self.team_game_stats = right_rail.get("teamGameStats", [])
 
             # Update game data from boxscore
             if self.boxscore:
@@ -540,24 +542,36 @@ class GameScreen(Screen):
         header.compose_add_child(Label(home_abbrev, classes="stats-home"))
         section.compose_add_child(header)
 
-        # Get team stats - sog is directly on team, others need aggregation
-        away_sog = away_team.get("sog", 0)
-        home_sog = home_team.get("sog", 0)
+        stats_by_category = {item.get("category"): item for item in self.team_game_stats}
 
-        # Aggregate stats from player data
-        away_stats = self._aggregate_team_stats("awayTeam")
-        home_stats = self._aggregate_team_stats("homeTeam")
+        def fmt(category: str, as_pct: bool = False) -> tuple[str, str]:
+            entry = stats_by_category.get(category)
+            if entry is None:
+                return ("—", "—")
+            away_val = entry.get("awayValue", 0)
+            home_val = entry.get("homeValue", 0)
+            if as_pct:
+                return (f"{float(away_val):.0%}", f"{float(home_val):.0%}")
+            return (str(away_val), str(home_val))
 
-        # Stats to display
+        away_sog, home_sog = fmt("sog")
+        away_fo, home_fo = fmt("faceoffWinningPctg", as_pct=True)
+        away_pp, home_pp = fmt("powerPlay")
+        away_pim, home_pim = fmt("pim")
+        away_hits, home_hits = fmt("hits")
+        away_blocks, home_blocks = fmt("blockedShots")
+        away_give, home_give = fmt("giveaways")
+        away_take, home_take = fmt("takeaways")
+
         stats_rows = [
-            (str(away_sog), "Shots", str(home_sog)),
-            (f"{away_stats['faceoffPct']:.0%}", "Faceoff %", f"{home_stats['faceoffPct']:.0%}"),
-            (f"{away_stats['ppg']}/{away_stats['ppo']}", "Power Play", f"{home_stats['ppg']}/{home_stats['ppo']}"),
-            (str(away_stats["pim"]), "PIM", str(home_stats["pim"])),
-            (str(away_stats["hits"]), "Hits", str(home_stats["hits"])),
-            (str(away_stats["blocks"]), "Blocked Shots", str(home_stats["blocks"])),
-            (str(away_stats["giveaways"]), "Giveaways", str(home_stats["giveaways"])),
-            (str(away_stats["takeaways"]), "Takeaways", str(home_stats["takeaways"])),
+            (away_sog, "Shots", home_sog),
+            (away_fo, "Faceoff %", home_fo),
+            (away_pp, "Power Play", home_pp),
+            (away_pim, "PIM", home_pim),
+            (away_hits, "Hits", home_hits),
+            (away_blocks, "Blocked Shots", home_blocks),
+            (away_give, "Giveaways", home_give),
+            (away_take, "Takeaways", home_take),
         ]
 
         for away_val, label, home_val in stats_rows:
@@ -568,47 +582,6 @@ class GameScreen(Screen):
             section.compose_add_child(row)
 
         return section
-
-    def _aggregate_team_stats(self, team_key: str) -> dict:
-        """Aggregate team stats from individual player stats."""
-        player_stats = self.boxscore.get("playerByGameStats", {}).get(team_key, {})
-
-        totals = {
-            "hits": 0,
-            "pim": 0,
-            "blocks": 0,
-            "giveaways": 0,
-            "takeaways": 0,
-            "ppg": 0,
-            "ppo": 0,
-            "faceoffWins": 0,
-            "faceoffTotal": 0,
-        }
-
-        # Aggregate from forwards and defense
-        for position in ["forwards", "defense"]:
-            for player in player_stats.get(position, []):
-                totals["hits"] += player.get("hits", 0)
-                totals["pim"] += player.get("pim", 0)
-                totals["blocks"] += player.get("blockedShots", 0)
-                totals["giveaways"] += player.get("giveaways", 0)
-                totals["takeaways"] += player.get("takeaways", 0)
-                totals["ppg"] += player.get("powerPlayGoals", 0)
-
-                # Faceoff percentage - need to calculate weighted average
-                fo_pct = player.get("faceoffWinningPctg", 0)
-                if fo_pct > 0:
-                    # Estimate faceoffs taken (not exact but reasonable)
-                    totals["faceoffTotal"] += 1
-                    totals["faceoffWins"] += fo_pct
-
-        # Calculate faceoff percentage
-        if totals["faceoffTotal"] > 0:
-            totals["faceoffPct"] = totals["faceoffWins"] / totals["faceoffTotal"]
-        else:
-            totals["faceoffPct"] = 0
-
-        return totals
 
     def _build_pbp_section(self, scrollable: bool = False) -> Vertical:
         """Build the play-by-play section."""
@@ -805,7 +778,7 @@ class GameScreen(Screen):
         """Update the countdown timer every second."""
         self._countdown -= 1
         if self._countdown < 0:
-            self._countdown = self.REFRESH_INTERVAL
+            self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
 
     def _update_subtitle(self) -> None:
@@ -814,7 +787,7 @@ class GameScreen(Screen):
 
     def _auto_refresh(self) -> None:
         """Auto-refresh game data."""
-        self._countdown = self.REFRESH_INTERVAL
+        self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
         self.client.clear_cache()
         self.load_game_data()
@@ -825,7 +798,7 @@ class GameScreen(Screen):
 
     def action_refresh(self) -> None:
         """Manually refresh game data."""
-        self._countdown = self.REFRESH_INTERVAL
+        self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
         self.client.clear_cache()
         self.load_game_data()

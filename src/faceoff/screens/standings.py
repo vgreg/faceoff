@@ -209,7 +209,7 @@ class StandingsScreen(Screen):
     async def _fetch_standings(self) -> None:
         """Fetch standings from the API."""
         try:
-            data = self.client.get_standings()
+            data = await self.client.get_standings()
             self.standings = data.get("standings", [])
             self._update_all_views()
         except Exception as e:

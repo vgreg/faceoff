@@ -19,9 +19,19 @@ A terminal user interface (TUI) application for following NHL hockey games in re
 - **Responsive Layout**: Game cards and standings automatically arrange based on terminal width
 - **Local Time Display**: Game times shown in your local timezone with timezone abbreviation
 
-## Screenshot
+## Screenshots
 
-![Faceoff Screenshot](assets/screenshot.png)
+Game detail view (shown with different terminal color schemes):
+
+![Game detail view](assets/screenshots/Faceoff_2026-04-19T12_37_42_686318.svg)
+
+![Game detail view, dark theme](assets/screenshots/Faceoff_2026-04-19T12_38_12_746997.svg)
+
+![Game detail view, warm theme](assets/screenshots/Faceoff_2026-04-19T12_38_42_262656.svg)
+
+League standings:
+
+![League standings](assets/screenshots/Faceoff_2026-04-19T12_39_28_765694.svg)
 
 ## Quick Start
 

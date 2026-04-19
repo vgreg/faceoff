@@ -97,8 +97,6 @@ class ScheduleScreen(Screen):
     }
     """
 
-    REFRESH_INTERVAL: ClassVar[int] = 30  # Seconds between auto-refreshes
-
     def __init__(self, client: NHLClient, **kwargs) -> None:
         super().__init__(**kwargs)
         self.client = client
@@ -106,13 +104,16 @@ class ScheduleScreen(Screen):
         self.games: list = []
         self._refresh_timer: Timer | None = None
         self._countdown_timer: Timer | None = None
-        self._countdown: int = self.REFRESH_INTERVAL
+        self._countdown: int = 30  # Reset from app.refresh_interval on mount
         self._last_width: int = 0
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static(self._format_date(), classes="date-header", id="date-header")
-        yield Static("Use arrow keys to navigate games | h/l: Change date | t: Today", classes="date-nav")
+        yield Static(
+            "Arrows: Navigate | h/l: Change date | t: Today | s: Standings | p: Stats | m: Teams | r: Refresh | q: Quit",
+            classes="date-nav",
+        )
         with VerticalScroll(classes="games-scroll", id="games-scroll"), Vertical(classes="games-grid", id="games-grid"):
             yield Label("Loading...", classes="loading")
         yield Footer()
@@ -120,9 +121,9 @@ class ScheduleScreen(Screen):
     def on_mount(self) -> None:
         """Load games when the screen is mounted."""
         self.load_games()
-        # Set up auto-refresh every 30 seconds (only for today's games)
-        self._countdown = self.REFRESH_INTERVAL
-        self._refresh_timer = self.set_interval(30, callback=self._auto_refresh)  # type: ignore[arg-type]
+        interval = self.app.refresh_interval  # type: ignore[attr-defined]
+        self._countdown = interval
+        self._refresh_timer = self.set_interval(interval, callback=self._auto_refresh)  # type: ignore[arg-type]
         self._countdown_timer = self.set_interval(1, callback=self._update_countdown)
         self._update_subtitle()
 
@@ -155,7 +156,7 @@ class ScheduleScreen(Screen):
         """Fetch games from the API."""
         try:
             date_str = self.current_date.strftime("%Y-%m-%d")
-            schedule = self.client.get_schedule(date_str)
+            schedule = await self.client.get_schedule(date_str)
 
             # Extract games for the current date
             self.games = []
@@ -228,7 +229,7 @@ class ScheduleScreen(Screen):
         """Update the countdown timer every second."""
         self._countdown -= 1
         if self._countdown < 0:
-            self._countdown = self.REFRESH_INTERVAL
+            self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
 
     def _update_subtitle(self) -> None:
@@ -240,7 +241,7 @@ class ScheduleScreen(Screen):
 
     def _auto_refresh(self) -> None:
         """Auto-refresh games (for live updates)."""
-        self._countdown = self.REFRESH_INTERVAL
+        self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         # Only refresh if viewing today's games
         if self.current_date == get_nhl_today():
             self._update_subtitle()
@@ -285,13 +286,13 @@ class ScheduleScreen(Screen):
     def action_today(self) -> None:
         """Go to today."""
         self.current_date = get_nhl_today()
-        self._countdown = self.REFRESH_INTERVAL
+        self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
         self.load_games()
 
     def action_refresh(self) -> None:
         """Manually refresh games."""
-        self._countdown = self.REFRESH_INTERVAL
+        self._countdown = self.app.refresh_interval  # type: ignore[attr-defined]
         self._update_subtitle()
         self.client.clear_cache()
         self.load_games()
@@ -338,6 +339,8 @@ class ScheduleScreen(Screen):
         idx = self._get_focused_card_index()
         if idx > 0:
             self._focus_card_at_index(idx - 1)
+        elif idx == -1:
+            self._focus_card_at_index(0)
 
     def action_focus_next_card(self) -> None:
         """Focus the next game card."""

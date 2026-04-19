@@ -156,8 +156,8 @@ class StatsScreen(Screen):
     async def _fetch_stats(self) -> None:
         """Fetch stats from the API."""
         try:
-            self.skater_stats = self.client.get_skater_stats_leaders()
-            self.goalie_stats = self.client.get_goalie_stats_leaders()
+            self.skater_stats = await self.client.get_skater_stats_leaders()
+            self.goalie_stats = await self.client.get_goalie_stats_leaders()
             self._update_skaters_view()
             self._update_goalies_view()
         except Exception as e:

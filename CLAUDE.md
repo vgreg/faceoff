@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Faceoff is a terminal TUI app for watching NHL hockey games, written in Python 3.10+ using Textual and managed with uv.
+Faceoff is a terminal TUI app for watching NHL hockey games, written in Python 3.13+ using Textual and managed with uv.
 
 ## Common Commands
 
@@ -41,7 +41,7 @@ uv run ty check
 uv run ruff check .
 uv run ruff format .
 
-# Test across Python versions (3.9-3.13)
+# Run tox (Python 3.13)
 tox
 ```
 
@@ -50,16 +50,20 @@ tox
 ```
 src/faceoff/
 ├── __init__.py          # Package version
-├── cli.py               # Entry point (faceoff command)
+├── cli.py               # Entry point (faceoff command, argparse for --refresh-interval)
 ├── app.py               # Main Textual App class
 ├── api/
 │   ├── __init__.py
-│   └── client.py        # NHL API client with caching
+│   └── client.py        # NHL API async client with caching
 ├── screens/
 │   ├── __init__.py
 │   ├── schedule.py      # Game schedule browser (main screen)
 │   ├── game.py          # Game detail view with play-by-play
-│   └── standings.py     # League standings view
+│   ├── pregame.py       # Pre-game matchup preview
+│   ├── standings.py     # League standings view (Wild Card/Division/Conference/League tabs)
+│   ├── stats.py         # Skater and goalie stats leaders
+│   ├── teams.py         # Team browser and team detail screens
+│   └── player.py        # Player profile view
 └── widgets/
     ├── __init__.py
     ├── game_card.py     # Game card for schedule list
@@ -69,19 +73,24 @@ src/faceoff/
 
 ### Key Components
 
-- **NHLClient** (`api/client.py`): HTTP client wrapper around NHL API with response caching and redirect following
-- **ScheduleScreen**: Main screen showing today's games with responsive grid layout, supports date navigation (h/l keys)
-- **GameScreen**: Shows scoreboard, play-by-play, box score tabs with auto-refresh for live games
-- **StandingsScreen**: Division standings by conference
+- **NHLClient** (`api/client.py`): Async HTTP client (httpx.AsyncClient) for `api-web.nhle.com/v1` with response caching and redirect following. All `get_*` methods are async — always `await` them from inside screen workers.
+- **ScheduleScreen**: Main screen showing games for a date with responsive grid layout, supports date navigation (h/l keys) and navigation to Standings/Stats/Teams screens
+- **GameScreen**: Shows scoreboard, goals, team game stats, and play-by-play with auto-refresh for live and pre-game states. Team stats pulled from the `/gamecenter/{id}/right-rail` endpoint.
+- **PreGameScreen**: Matchup preview shown for games in `FUT` or `PRE` state
+- **StandingsScreen**: League standings with Wild Card, Division, Conference, and League tabs
+- **StatsScreen**: Skater and goalie stats leaders
+- **TeamsScreen / TeamDetailScreen**: Team browser and per-team detail (roster + schedule)
+- **PlayerScreen**: Player profile (career and game log)
 - **GameCard**: Individual game card widget with local time display and timezone abbreviation
 
 ### Data Flow
 
-1. App launches ScheduleScreen with shared NHLClient
-2. ScheduleScreen fetches schedule and renders GameCard widgets in a responsive grid
-3. Selecting a live/completed game pushes GameScreen, which fetches boxscore and play-by-play
-4. Selecting a future game shows a notification with game time instead of opening GameScreen
-5. Live games auto-refresh every 10 seconds; schedule refreshes every 30 seconds
+1. CLI parses `--refresh-interval` (default 30s, min 5s) and instantiates FaceoffApp
+2. App launches ScheduleScreen with shared NHLClient
+3. ScheduleScreen fetches schedule and renders GameCard widgets in a responsive grid
+4. Selecting a live/completed game pushes GameScreen, which fetches boxscore, play-by-play, landing, and right-rail team stats
+5. Selecting a future/pre-game game pushes PreGameScreen; postponed/cancelled games show a notification
+6. Live and pre-game GameScreens auto-refresh every `refresh_interval` seconds; ScheduleScreen refreshes on the same interval
 
 ### UI Features
 
@@ -93,7 +102,7 @@ src/faceoff/
 ## Key Tools & Configuration
 
 - **TUI Framework:** Textual
-- **NHL API:** nhl-stats-api-client (wrapped in custom client)
+- **NHL API:** Direct httpx.AsyncClient calls to `api-web.nhle.com/v1` (NHLClient wraps httpx directly; `nhl-stats-api-client` is listed as a dependency but not imported)
 - **Package manager:** uv (use `uv run` to execute commands)
 - **Linting/formatting:** ruff (line length 120, strict ruleset)
 - **Type checking:** ty
@@ -103,7 +112,7 @@ src/faceoff/
 
 GitHub Actions runs on PRs and main branch:
 1. Pre-commit checks and lock file validation
-2. Tests across Python 3.10-3.14
+2. Tests on Python 3.13
 3. Documentation build verification
 
 Releases are automated via GitHub release tags, publishing to PyPI.
