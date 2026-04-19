@@ -18,6 +18,7 @@ plugins:
           paths: ["src/faceoff"]
 theme:
   name: material
+  custom_dir: overrides
   logo: assets/faceoff_logo.png
   favicon: assets/faceoff_logo.png
   feature:
