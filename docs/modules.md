@@ -12,7 +12,15 @@
 
 ::: faceoff.screens.game
 
+::: faceoff.screens.pregame
+
 ::: faceoff.screens.standings
+
+::: faceoff.screens.stats
+
+::: faceoff.screens.teams
+
+::: faceoff.screens.player
 
 ### Widgets
 

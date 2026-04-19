@@ -18,9 +18,10 @@ class FaceoffApp(App):
     }
     """
 
-    def __init__(self) -> None:
+    def __init__(self, refresh_interval: int = 30) -> None:
         super().__init__()
         self.client = NHLClient()
+        self.refresh_interval = refresh_interval
 
     def on_mount(self) -> None:
         """Set up the application when mounted."""
