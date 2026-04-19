@@ -307,9 +307,9 @@ class GameScreen(Screen):
         """Fetch game data from the API."""
         try:
             # Fetch boxscore, play-by-play, and landing page
-            self.boxscore = self.client.get_game_boxscore(self.game_id)
-            pbp_data = self.client.get_game_play_by_play(self.game_id)
-            landing = self.client.get_game_landing(self.game_id)
+            self.boxscore = await self.client.get_game_boxscore(self.game_id)
+            pbp_data = await self.client.get_game_play_by_play(self.game_id)
+            landing = await self.client.get_game_landing(self.game_id)
 
             # Update game data from boxscore
             if self.boxscore:

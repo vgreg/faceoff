@@ -155,7 +155,7 @@ class ScheduleScreen(Screen):
         """Fetch games from the API."""
         try:
             date_str = self.current_date.strftime("%Y-%m-%d")
-            schedule = self.client.get_schedule(date_str)
+            schedule = await self.client.get_schedule(date_str)
 
             # Extract games for the current date
             self.games = []

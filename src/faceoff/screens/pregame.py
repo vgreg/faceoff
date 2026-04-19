@@ -188,7 +188,7 @@ class PreGameScreen(Screen):
     async def _fetch_matchup_data(self) -> None:
         """Fetch matchup data from the API."""
         try:
-            self.landing = self.client.get_game_landing(self.game_id)
+            self.landing = await self.client.get_game_landing(self.game_id)
             self._update_matchup_view()
         except Exception as e:
             self.notify(f"Error loading matchup: {e}", severity="error")

@@ -229,7 +229,7 @@ class TeamsScreen(Screen):
     async def _fetch_teams(self) -> None:
         """Fetch teams from the API (via standings)."""
         try:
-            data = self.client.get_standings()
+            data = await self.client.get_standings()
             self.teams = data.get("standings", [])
             self._update_teams_display()
         except Exception as e:
@@ -479,8 +479,8 @@ class TeamDetailScreen(Screen):
     async def _fetch_team_data(self) -> None:
         """Fetch team data from the API."""
         try:
-            self.roster = self.client.get_team_roster(self.team_abbrev)
-            self.schedule = self.client.get_team_month_schedule(self.team_abbrev)
+            self.roster = await self.client.get_team_roster(self.team_abbrev)
+            self.schedule = await self.client.get_team_month_schedule(self.team_abbrev)
             self._update_roster_view()
             self._update_schedule_view()
         except Exception as e:

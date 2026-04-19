@@ -26,6 +26,6 @@ class FaceoffApp(App):
         """Set up the application when mounted."""
         self.push_screen(ScheduleScreen(self.client))
 
-    def on_unmount(self) -> None:
+    async def on_unmount(self) -> None:
         """Clean up when application exits."""
-        self.client.close()
+        await self.client.aclose()

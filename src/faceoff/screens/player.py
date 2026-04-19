@@ -143,8 +143,8 @@ class PlayerScreen(Screen):
     async def _fetch_player_data(self) -> None:
         """Fetch player data from the API."""
         try:
-            self.player_data = self.client.get_player_landing(self.player_id)
-            self.game_log = self.client.get_player_game_log(self.player_id)
+            self.player_data = await self.client.get_player_landing(self.player_id)
+            self.game_log = await self.client.get_player_game_log(self.player_id)
 
             # Update header with full name
             first = self.player_data.get("firstName", {}).get("default", "")
