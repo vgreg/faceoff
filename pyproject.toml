@@ -5,7 +5,7 @@ description = "Terminal tool for watching hockey games"
 authors = [{ name = "Vincent Gregoire", email = "vincent.gregoire@gmail.com" }]
 readme = "README.md"
 keywords = ['python']
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "textual>=3.0.0",
     "nhl-stats-api-client>=1.0.0",
@@ -15,11 +15,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
@@ -59,7 +55,7 @@ packages = ["src/faceoff"]
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py313"
 line-length = 120
 fix = true
 

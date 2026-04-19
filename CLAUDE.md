@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Faceoff is a terminal TUI app for watching NHL hockey games, written in Python 3.10+ using Textual and managed with uv.
+Faceoff is a terminal TUI app for watching NHL hockey games, written in Python 3.13+ using Textual and managed with uv.
 
 ## Common Commands
 
@@ -41,7 +41,7 @@ uv run ty check
 uv run ruff check .
 uv run ruff format .
 
-# Test across Python versions (3.10-3.14)
+# Run tox (Python 3.13)
 tox
 ```
 
@@ -112,7 +112,7 @@ src/faceoff/
 
 GitHub Actions runs on PRs and main branch:
 1. Pre-commit checks and lock file validation
-2. Tests across Python 3.10-3.14
+2. Tests on Python 3.13
 3. Documentation build verification
 
 Releases are automated via GitHub release tags, publishing to PyPI.

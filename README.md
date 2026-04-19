@@ -6,7 +6,7 @@
 
 A terminal user interface (TUI) application for following NHL hockey games in real-time.
 
-![Python](https://img.shields.io/badge/python-3.10+-blue.svg)
+![Python](https://img.shields.io/badge/python-3.13+-blue.svg)
 [![License](https://img.shields.io/github/license/vgreg/faceoff)](https://img.shields.io/github/license/vgreg/faceoff)
 
 ## Features
