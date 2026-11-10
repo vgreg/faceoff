@@ -11,6 +11,25 @@ from textual.widgets import Footer, Header, Label, Static, TabbedContent, TabPan
 from faceoff.api import NHLClient
 
 
+def player_display_name(player: dict) -> str:
+    """Format a player's display name as 'F. Lastname'.
+
+    The NHL API usually returns names as localized objects like
+    ``{"default": "John"}``, but some responses carry plain strings.
+    Accept both shapes instead of crashing on the unexpected one.
+    """
+
+    def _text(value: object) -> str:
+        if isinstance(value, dict):
+            default = value.get("default", "")
+            return default if isinstance(default, str) else ""
+        return value if isinstance(value, str) else ""
+
+    first_name = _text(player.get("firstName", ""))
+    last_name = _text(player.get("lastName", ""))
+    return f"{first_name[0]}. {last_name}" if first_name else last_name
+
+
 class StatsScreen(Screen):
     """Screen for viewing player stats leaders."""
 
@@ -259,9 +278,7 @@ class StatsScreen(Screen):
         """Create a row for a player."""
         row = Horizontal(classes="stat-row")
 
-        first_name = player.get("firstName", {}).get("default", "")
-        last_name = player.get("lastName", {}).get("default", "")
-        name = f"{first_name[0]}. {last_name}" if first_name else last_name
+        name = player_display_name(player)
         team = player.get("teamAbbrev", "???")
         pos = player.get("position", "?")
         value = player.get("value", 0)
